@@ -10,13 +10,10 @@
 {-# LANGUAGE TypeOperators #-}
 
 module UnitsOfMeasure
-    ( Unit(..) -- Constructors shouldn't really be exported
+    ( Unit(..)
     , Quantity -- N.B. MkQuantity not exported!
     , zero
     , unit
-    , type (*:)
-    , type (^:)
-    , type (/:)
     , (+:)
     , (-:)
     , (*:)
@@ -39,11 +36,9 @@ import Unsafe.Coerce
 
 -- Base BaseUnit would be nicer, for a type synonym BaseUnit but makes
 -- Unit un-promotable; we also need to get at the strings somehow!
-data Unit = Base Symbol | Unit :*: Unit | Inv Unit | One
+data Unit = Base Symbol | Unit :*: Unit | Unit :/: Unit | Unit :^: Nat | One
 
-type family (u :: Unit) *: (v :: Unit) :: Unit
-type family (u :: Unit) ^: (i :: Nat ) :: Unit
-type family (u :: Unit) /: (v :: Unit) :: Unit
+
 
 
 type role Quantity nominal representational
@@ -64,16 +59,15 @@ MkQuantity x +: MkQuantity y = MkQuantity (x + y)
 (-:) :: Num a => Quantity a u -> Quantity a u -> Quantity a u
 MkQuantity x -: MkQuantity y = MkQuantity (x - y)
 
-(*:) :: Num a => Quantity a u -> Quantity a v -> Quantity a (u *: v)
+(*:) :: Num a => Quantity a u -> Quantity a v -> Quantity a (u :*: v)
 MkQuantity x *: MkQuantity y = MkQuantity (x * y)
 
-(/:) :: Fractional a => Quantity a u -> Quantity a v -> Quantity a (u /: v)
+(/:) :: Fractional a => Quantity a u -> Quantity a v -> Quantity a (u :/: v)
 MkQuantity x /: MkQuantity y = MkQuantity (x / y)
 
-infixl 6 +:
-infixl 7 *:
-infixl 7 /:
-infixr 8 ^:
+infixl 6 +:, -:
+infixl 7 *:, /:, :*:, :/:
+infixr 8 :^:
 
 sqrt' :: Floating a => Quantity a (u :*: u) -> Quantity a u
 sqrt' (MkQuantity x) = MkQuantity (sqrt x)
@@ -109,16 +103,16 @@ trans Refl Refl = Refl
 trustMe :: Proxy# (u :: Unit) -> Proxy# v -> u :==: v
 trustMe _ _ = error "trustMe"
 
-associative :: Proxy# (u :: Unit) -> Proxy# v -> Proxy# w -> (u *: (v *: w)) :==: ((u *: v) *: w)
+associative :: Proxy# (u :: Unit) -> Proxy# v -> Proxy# w -> (u :*: (v :*: w)) :==: ((u :*: v) :*: w)
 associative _ _ _ = trustMe proxy# proxy#
 
-commutative :: Proxy# (u :: Unit) -> Proxy# v -> (u *: v) :==: (v *: u)
+commutative :: Proxy# (u :: Unit) -> Proxy# v -> (u :*: v) :==: (v :*: u)
 commutative _ _ = trustMe proxy# proxy#
 
-identity :: Proxy# (u :: Unit) -> (u *: One) :==: u
+identity :: Proxy# (u :: Unit) -> (u :*: One) :==: u
 identity _ = trustMe proxy# proxy#
 
-inverse :: Proxy# (u :: Unit) -> (u *: Inv u) :==: One
+inverse :: Proxy# (u :: Unit) -> (u :/: u) :==: One
 inverse _ = trustMe proxy# proxy#
 
 cast :: u :==: v -> Quantity a u -> Quantity a v
@@ -132,12 +126,10 @@ cast _ (MkQuantity x) = MkQuantity x
 data SUnit u where
   SBase  :: KnownSymbol s => SUnit (Base s)
   (:**:) :: SUnit u -> SUnit v -> SUnit (u :*: v)
-  SInv   :: SUnit u -> SUnit (Inv u)
 
 eraseSUnit :: SUnit u -> Unit
 eraseSUnit SBase      = Base (error "Symbol")
 eraseSUnit (u :**: v) = eraseSUnit u :*: eraseSUnit v
-eraseSUnit (SInv u)   = Inv (eraseSUnit u)
 
 
 
