@@ -21,6 +21,8 @@ module UnitsOfMeasure
     , sqrt'
 
     , (:==:)(Refl)
+    , sym
+    , trans
     , trustMe
     , cast
     , associative
@@ -103,17 +105,17 @@ trans Refl Refl = Refl
 trustMe :: Proxy# (u :: Unit) -> Proxy# v -> u :==: v
 trustMe _ _ = error "trustMe"
 
-associative :: Proxy# (u :: Unit) -> Proxy# v -> Proxy# w -> (u :*: (v :*: w)) :==: ((u :*: v) :*: w)
-associative _ _ _ = trustMe proxy# proxy#
+associative :: (u :*: (v :*: w)) :==: ((u :*: v) :*: w)
+associative = trustMe proxy# proxy#
 
-commutative :: Proxy# (u :: Unit) -> Proxy# v -> (u :*: v) :==: (v :*: u)
-commutative _ _ = trustMe proxy# proxy#
+commutative :: (u :*: v) :==: (v :*: u)
+commutative = trustMe proxy# proxy#
 
-identity :: Proxy# (u :: Unit) -> (u :*: One) :==: u
-identity _ = trustMe proxy# proxy#
+identity :: (u :*: One) :==: u
+identity = trustMe proxy# proxy#
 
-inverse :: Proxy# (u :: Unit) -> (u :/: u) :==: One
-inverse _ = trustMe proxy# proxy#
+inverse :: (u :/: u) :==: One
+inverse = trustMe proxy# proxy#
 
 cast :: u :==: v -> Quantity a u -> Quantity a v
 cast _ (MkQuantity x) = MkQuantity x

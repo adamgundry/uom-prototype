@@ -22,7 +22,9 @@ heightOfBuilding = 40.0 `unit` (proxy# :: Proxy# M)
 speedOfImpact = sqrt' (cast lemma (2.0 *: (gravityOnEarth *: heightOfBuilding)))
   where
     lemma :: ('One :*: ((M :/: (S :^: 2)) :*: M)) :==: ((M :/: S) ':*: (M :/: S))
-    lemma = trustMe (proxy# :: Proxy# (One :*: ((M :/: (S :^: 2)) :*: M))) (proxy# :: Proxy# ((M :/: S) :*: (M :/: S)))
+    lemma = commutative `trans` identity
+            `trans` trustMe (proxy# :: Proxy# ((M :/: (S :^: 2)) :*: M))
+                            (proxy# :: Proxy# ((M :/: S) :*: (M :/: S)))
 
 -- speedOfImpact' = sqrt (2.0 *: gravityOnEarth +: heightOfBuilding)
 -- Couldn't match type ‘'One :*: (M :/: (S :^: 2))’ with ‘M’
