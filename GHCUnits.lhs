@@ -14,17 +14,19 @@ module GHCUnits
 
 import GHC.TypeLits
 
--- | The type of units of measure.  Inside GHC this will probably
--- include only the 'One' and 'Base' constructors, and use type
--- families (open type-level functions) for the multiplication and
--- inverse.
+-- | The type of units of measure.  Inside GHC this will include only
+-- the 'One' and 'Base' constructors, and use type families (open
+-- type-level functions) for the multiplication and inverse.  For the
+-- prototype we use constructors in order to get better type inference
+-- behaviour, but it is potentially unsound to do so.
 data Unit = One | Base Symbol | Unit :*: Unit | Inv Unit
 
+-- type family (u :: Unit) *: (v :: Unit) :: Unit
 type u *: v = u :*: v
+
+-- type family (u :: Unit) /: (v :: Unit) :: Unit
 type u /: v = u :*: Inv v
 
--- type family (u :: Unit) *: (v :: Unit) :: Unit
--- type family (u :: Unit) /: (v :: Unit) :: Unit
 type family (u :: Unit) ^: (n :: Nat)  :: Unit
 
 infixl 7 *:, /:, :*:

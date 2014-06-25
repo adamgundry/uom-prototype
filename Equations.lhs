@@ -33,9 +33,6 @@ data x :==: y where
 
 infix 4 :==:
 
-elimEq :: x :==: y -> ((x ~ y) => a) -> a
-elimEq Refl v = v
-
 sym :: x :==: y -> y :==: x
 sym Refl = Refl
 
